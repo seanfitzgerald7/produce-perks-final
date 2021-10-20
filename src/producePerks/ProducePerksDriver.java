@@ -15,12 +15,14 @@
 package producePerks;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * @author Katie Timmerman
- * @author < your name >
+ * @author Sean Fitzgerald
  *
  * Course: Data Structures and Algorithms Semester:
  */
@@ -28,9 +30,10 @@ public class ProducePerksDriver {
 
     private static ArrayList<Integer> customer_keys;
     private static MyHashTable table;
+    protected static final File CSV_FILE = new File("transactions.csv");
 
     public static void main(String[] args) throws Exception {
-        // debuggingFunctions();
+        debuggingFunctions();
         loadData();
         completeAnalysis();
 
@@ -167,10 +170,85 @@ public class ProducePerksDriver {
             System.err.println("File " + fileName + " not found.");
         }
     }
+    
+    /*
+     * This code runs the analysis on question 2A. It uses totalsByData() in class Customer to computer total amounts for each customer's transactions
+     * Then prints into columns in file "transactions.csv"
+     * 
+     */
 
-    private static void completeAnalysis() {
+    private static void completeAnalysis() throws FileNotFoundException {
         System.out.println("Code to answer your question goes here.");
         // get total spent with snap for each index in hash table
+        // group into 3 lists (beginning, middle, end of month)
+        // get percentages of spending based on total spent
+        String[] headers = {"Beginning", "Middle", "End", "Zero Dollar", "Beg-Percentage","Mid-Percentage", "End-Percentage", "Zero-Percentage"};
+        PrintWriter pw = new PrintWriter(CSV_FILE);
+        
+        // Writing headers into file
+        for (int i = 0; i < headers.length; i++) {
+        	pw.write(headers[i]);
+        	pw.write(',');
+        }
+        
+        pw.write(System.lineSeparator());
+        // Loops through table size, uses find() in class Customer to find each customer by index
+        // Prints "None" is transaction total by month is less than 3
+        // Uses printwriter to write to CSV file
+        for (int i = 0; i < table.getSize(); i++) {
+        	Customer temp = table.find(i);
+        	if (temp != null) {
+        		temp.totalsByDate();
+        		if (temp.getBeg() >= 3) {
+        			pw.print((int) temp.getBeg());
+        			pw.write(',');
+        		} else {
+        			pw.print("None");
+        			pw.write(',');
+        		}
+        		
+        		if (temp.getMid() >= 3) {
+        			pw.print((int) temp.getMid());
+            		pw.write(',');
+        		} else {
+        			pw.print("None");
+        			pw.write(',');
+        		}
+        		
+        		if (temp.getEnd() >= 3) {
+        			pw.print((int) temp.getEnd());
+            		pw.write(',');
+        		} else {
+        			pw.print("None");
+        			pw.write(',');
+        		}
+        		
+        		if (temp.getZeros() != 0) {
+        			pw.print((int) temp.getZeros());
+            		pw.write(',');
+        		} else {
+        			pw.print("None");
+        			pw.write(',');
+        		}
+
+        		pw.print((int) temp.getBegPercentage());
+        		pw.write(',');
+        		
+        		pw.print((int) temp.getMidPercentage());
+        		pw.write(',');
+        		
+        		pw.print((int) temp.getEndPercentage());
+        		pw.write(',');
+        		
+        		pw.print((int) temp.getZeroPercentage());
+        		pw.write(System.lineSeparator());
+        	}
+        }
+        
+        pw.flush();
+        pw.close();
+        
+        
     }
 
 }

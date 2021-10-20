@@ -36,20 +36,18 @@ public class MyHashTable {
      * @return 
      */
     private int indexOf(int key) {
+    	// Basic Hash function implemented
     	int hash = key % HASH_TABLE_SIZE;
-    	if (hashTable[hash].getKey() == -1) return -1;
-    	else {
-    		if (hashTable[hash].getKey() == key) return hash;
-    		else {
-    			int count = 0;
-				do {
-    				hash = probeFunc(hash);
-    				if (hashTable[hash].getKey() == key) return hash;
-    				count++;
-    			} while (count != currentSize);
-    			return -1;
-    		}
-    	}
+    	// Checking if record is normal & key matches given key
+    	if (hashTable[hash].isNormal() && hashTable[hash].getKey() == key) return hash;
+    	int count = 0;
+    	do {
+    		// Probe function to loop through hash table, if count reaches the table size, return -1, as we have checked everything
+    		hash = probeFunc(hash);
+    		if (hashTable[hash].isNormal() && hashTable[hash].getKey() == key) return hash;
+    		count++;
+    	} while (count != HASH_TABLE_SIZE);
+    	return -1;
     }
     
     private int probeFunc(int current) {
@@ -60,51 +58,59 @@ public class MyHashTable {
 
     /*Finds an element with a certain key and returns the associated Customer*/
     public Customer find(int key) {
-    	int index = key % HASH_TABLE_SIZE;
-    	int curr = indexOf(index);
-        if (curr != -1) {
-        	if (hashTable[curr].isTombstone() || hashTable[curr].isEmpty()) return null;
-        	else if (hashTable[curr].getKey() == key) return hashTable[curr].getValue();
-        } else {
-        	return null;
-        }
-        return null;
+    	
+    	// uses indexOf() to find key value, returns the customer associated
+    	if (indexOf(key) == -1) return null;
+    	else {
+    		Customer temp = hashTable[indexOf(key)].getValue();
+    		return temp;
+    	}
     }
 
     /*Inserts the key/value into the hashtable*/
     public boolean insert(int key, Customer value) {
-    	if (currentSize == HASH_TABLE_SIZE) return false;
+    	
+    	// Implements both hash and probe function to find open slot to insert
+    	
+    	if (currentSize == HASH_TABLE_SIZE) return false; // base check
     	int index = key % HASH_TABLE_SIZE;
-    	if (hashTable[index].isEmpty()) {
+    	if (hashTable[index].isEmpty() || hashTable[index].isTombstone()) { // first check after hash function
     		hashTable[index] = new Record(key, value);
     		currentSize++;
     		return true;
     	} else if (!hashTable[index].isEmpty()){
     		int count = 0;
-    		do {
+    		do { // implements probe function to find open slot, checking if empty or tombstone
     			index = probeFunc(index);
-    			if (hashTable[index].isEmpty()) {
+    			if (hashTable[index].isEmpty() || hashTable[index].isTombstone()) {
     				hashTable[index] = new Record(key, value);
     				currentSize++;
     				return true;
     			} 
     			count++;
-    		} while (count != HASH_TABLE_SIZE);
+    		} while (count != HASH_TABLE_SIZE - 1);
     	}
         return false;
     }
 
     /*Kills a table key and returns the associated value*/
     public Customer remove(int key) {
+    	// Uses indexOf to find key value in table
+    	// Stores it in temp, deletes the record and returns the value of temp
     	Customer temp;
     	if (indexOf(key) == -1) return null;
     	temp = hashTable[indexOf(key)].getValue();
     	hashTable[indexOf(key)].deleteRecord();
+    	currentSize--;
         return temp;
     }
     
+    public int getSize() {
+    	return HASH_TABLE_SIZE;
+    }
     
-    public void getTotals() {
+    public int getCurrentSize() {
+    	return currentSize;
     }
 
     /**
